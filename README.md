@@ -20,3 +20,4 @@ pyFetch is a W.I.P.
 A few modules are not implemented yet. The config system is not started on.
 I intend to add add ascii logos and colors for many distros.
 
+![output](pyfetch-preview.png)
