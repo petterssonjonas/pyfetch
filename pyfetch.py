@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #              _____    _       _
 #  _ __  _   _|  ___|__| |_ ___| |__
-# | '_ \| | | | |_ / _ \ __/ __| '_ \   http://gitlab.com/fuzebox/pyfetch
+# | '_ \| | | | |_ / _ \ __/ __| '_ \   https://gitlab.com/fuzebox/pyfetch
 # | |_) | |_| |  _|  __/ || (__| | | |
 # | .__/ \__, |_|  \___|\__\___|_| |_|
 # |_|    |___/ Yet another Linux system information fetcher.
@@ -212,15 +212,16 @@ OUT = """
 \033[3m\033[38;2;0;119;169mHome:\033[0m     {diskspace_home}
 \033[3m\033[38;2;0;119;169mSSD:\033[0m      {diskspace_custom1}
 \033[3m\033[38;2;0;119;169mHDD:\033[0m      {diskspace_custom2}
+
+
+
+"""
+
+"""
 \033[3m\033[38;2;0;119;169mTemp and fans:\033[0m
 \033[3m\033[38;2;0;119;169mCPU Temp:\033[0m {cpu_temp}
 \033[3m\033[38;2;0;119;169mCPU Fan:\033[0m  {cpu_fan}
-%sCPU Fan:%2s  {cpu_fan}
-""" % (
-    q,
-    w,
-)
-
+"""
 
 LOGO = """
 \033[3m\033[38;2;0;119;169m               #               \033[0m
