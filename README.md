@@ -1,3 +1,4 @@
+```
 #              _____    _       _
 #  _ __  _   _|  ___|__| |_ ___| |__
 # | '_ \| | | | |_ / _ \ __/ __| '_ \   https://gitlab.com/fuzebox/pyfetch
@@ -10,7 +11,7 @@
 #              pyFetch is meant to be more configurable than most others.
 #              As a every time i open a terminal execution i would recomend
 #              using Paleofetch, it is extremly fast.
-
+```
 
 This is but a hobby project. Started some time ago as a way to learn python.
 Fiddled with it lately and decided to make a repo.
