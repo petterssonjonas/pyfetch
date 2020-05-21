@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #              _____    _       _
 #  _ __  _   _|  ___|__| |_ ___| |__
 # | '_ \| | | | |_ / _ \ __/ __| '_ \   https://gitlab.com/fuzebox/pyfetch
@@ -7,12 +8,11 @@
 # |_|    |___/ Yet another Linux system information fetcher.
 #              Inspired by Neofetch (Bash), pfetch (bash), screenfetch (Bash),
 #              paleofetch (C), pyFetch (py, by bn0x unmentained), pyfetch (py, pip
-#              -package-fetcher). 
+#              -package-fetcher).
 #              pyFetch is meant to be more configurable than most others.
 #              As a every time i open a terminal execution i would recomend using
 #              Paleofetch, it is extremly fast.
 #
-
 # Trying to use as few modules as possible.
 # Could go without subprocess but it is the recommended and fastest
 # way of getting what we need. I should time the diff...
@@ -20,23 +20,23 @@
 # so importing socket to get around that.
 import os, subprocess, socket, time, psutil
 
-
+# make if needed import thing
 # if configured import pytz
 
-
+# Raspian returns linux2. wtf. Any other distros that returns smt else?
 if os.sys.platform != "linux":
     print("Mac is bad for you.")
     exit()
 
 
-# Declare colors
+# Declare colors. Put in config?
 clear = "\033[0m"
 cursive = "\033[3m"
 color_arch = "\033[38;2;0;119;169m"
 # Shorten for readability
 q = cursive + color_arch
 w = clear
-
+# Convert to ascii. No i dont wanna use colored or colorful or whatever.
 # color_gentoo = "#40375C"
 # color_ubuntu = "#E6491E"
 # color_fedora = "#234071"
@@ -46,6 +46,7 @@ w = clear
 # theme_gruvbox
 # theme_solarized
 
+# Man Black code formatting is annoying sometimes. Still best methinks.
 UNITS = [
     q + "kB",
     q + "MB",
@@ -57,13 +58,16 @@ UNITS = [
 # Nice short way of getting human readable units from the bytes given by psutil.
 # Kinda proud of this one... Change 1024 to 1000 if you are so inclined.
 def human_size(s):
-    m = 1024
     for u in UNITS:
-        s = s / m
-        if s < m:
+        s = s / 1024
+        if s < 1024:
             return "{0:.0f}{1}".format(s, u)
 
+# Gather some defs into one
 
+
+# socket.gethostname is recomended. wish i didnt have to import it.
+# os.uname().nodename truncates hostname to 8 characters on some systems
 def host_name():
     userathost = "\033[3;37m" + os.getlogin(), "\033[3;37m" + socket.gethostname()
     return "\033[3m\033[38;2;0;119;169m@".join(userathost)
@@ -76,29 +80,33 @@ def datetime():
     return t
 
 
-# If you want to define a timezone you can use this instead.
+# If you want to define a timezone you can use this instead. import pytz too.
 # def timezone():
-# timezone = pytz.timezone(TIMEZONE)
-# timehere = datetime.now(timezone)
-# time = timehere.strftime("%a %b %d %Y, \033[3;37m\033[38;2;0;119;169m%H:%M:%S")
-# return timezone
+#     timezone = pytz.timezone(TIMEZONE)
+#     timehere = datetime.now(timezone)
+#     time = timehere.strftime("%a %b %d %Y, \033[3;37m\033[38;2;0;119;169m%H:%M:%S")
+#     return timezone
 
-
-def lspci():
-    with os.system("lspci") as f:
-        find = int(f.readline().split)
-        return find
+# Make a process runner
+# def runner():
+#    with os.system("lspci") as f:
+#        find = int(f.readline().split)
+#        return find
 
 
 def cpu_name():
     #    with open ("/proc/cpuinfo", "r") as f:
     #        find = int(f.readline().split)
-    return "cpuname"
+    return "Not implemented"
 
 
 def kernel():
     k = os.uname().release
     return k
+
+
+def get_packages():
+    return "Not implemented"
 
 
 def terminal():
@@ -111,6 +119,7 @@ def shell():
     return s
 
 
+# Maybe rewrite this to use uname.uptime or some other way of getting y,m,w,d,h,m
 # /proc/uptime returns seconds. if u want sec add "%02d" and (sec) to return
 def uptime():
     with open("/proc/uptime", "r") as f:
@@ -123,11 +132,13 @@ def uptime():
     )
 
 
+# Is this needed? Load avg is probably more usable. Read up on what psutil percent returns.
 def cpu_use():
     c = psutil.cpu_percent()
     return str(c) + "\033[3m\033[38;2;0;119;169m%\033[0m "
 
 
+# Pretty this up. colors? better way? os.uname(?) can return week etc
 def loadavg():
     s = os.getloadavg()
     l = []
@@ -146,9 +157,10 @@ def ram():
 
 
 def gpu_name():
-    return "gpuname"
+    return "Not Implemented"
 
 
+# make mount points reader or smt. Or be lazy and just make config for points.
 def diskspace_root():
     d = psutil.disk_usage("/")
     return (
@@ -190,13 +202,14 @@ def diskspace_custom2():
 
 
 def cpu_temp():
-    return "cputemp"
+    return "Not implemented"
 
 
 def cpu_fan():
-    return "fanspeed"
+    return "Not implemented"
 
 
+# Out and text needs to be the same line count. make smt for this?
 OUT = """
 \033[3;37m{hostname}\033[0m
 \033[3m{datetime}\033[0m
@@ -204,7 +217,6 @@ OUT = """
 \033[3m\033[38;2;0;119;169mUptime:\033[0m   {uptime}
 \033[3m\033[38;2;0;119;169mTerminal:\033[0m {terminal}
 \033[3m\033[38;2;0;119;169mShell:\033[0m    {shell}
-\033[3m\033[38;2;0;119;169mCPU:\033[0m      {cpu_name}
 \033[3m\033[38;2;0;119;169mCPU Load:\033[0m {cpu_use}{loadavg}
 \033[3m\033[38;2;0;119;169mRam:\033[0m      {ram}
 \033[3m\033[38;2;0;119;169mDiskspace:\033[0m
@@ -215,9 +227,11 @@ OUT = """
 
 
 
+
 """
 
 """
+\033[3m\033[38;2;0;119;169mCPU:\033[0m      {cpu_name}
 \033[3m\033[38;2;0;119;169mTemp and fans:\033[0m
 \033[3m\033[38;2;0;119;169mCPU Temp:\033[0m {cpu_temp}
 \033[3m\033[38;2;0;119;169mCPU Fan:\033[0m  {cpu_fan}
@@ -262,7 +276,7 @@ TEXT = OUT.format(
     cpu_fan=cpu_fan(),
 )
 
-
+# Is this the best way of doing this?
 BLOCKS = [LOGO, TEXT]
 block_split = [b.split("\n") for b in BLOCKS]
 zipped = zip(*block_split)
