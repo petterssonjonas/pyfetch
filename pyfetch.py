@@ -18,7 +18,7 @@
 # way of getting what we need. I should time the diff...
 # os.uname().nodename truncates hostname to 8 characters on some systems
 # so importing socket to get around that.
-import os, subprocess, socket, time, psutil
+import os, re, subprocess, socket, time, psutil
 
 # make if needed import thing
 # if configured import pytz
@@ -30,12 +30,16 @@ if os.sys.platform != "linux":
 
 
 # Declare colors. Put in config?
+# Cursive isnt supported on all terminals by default. Might have to compile
+# terminfo with support for it.
+# Shouldnt be a problem. Maybe prints background or underlined, idk.
+# Want to use ligatures, but few ppl have the fonts and terminfo for it.
 clear = "\033[0m"
 cursive = "\033[3m"
 color_arch = "\033[38;2;0;119;169m"
 # Shorten for readability
 q = cursive + color_arch
-w = clear
+w = clear  # needed?
 # Convert to ascii. No i dont wanna use colored or colorful or whatever.
 # color_gentoo = "#40375C"
 # color_ubuntu = "#E6491E"
@@ -45,15 +49,23 @@ w = clear
 # color_redhat = "#F32F10"
 # theme_gruvbox
 # theme_solarized
+# notheme?
 
 # Man Black code formatting is annoying sometimes. Still best methinks.
 UNITS = [
-    q + "kB",
-    q + "MB",
-    q + "GB",
-    q + "TB",
-    q + "PB",
+    q + "k",
+    q + "M",
+    q + "G",
+    q + "T",
+    q + "P",
 ]
+
+
+# Make a process runner
+# def runner():
+#    with os.system("lspci") as f:
+#        find = int(f.readline().split)
+#        return find
 
 # Nice short way of getting human readable units from the bytes given by psutil.
 # Kinda proud of this one... Change 1024 to 1000 if you are so inclined.
@@ -61,7 +73,8 @@ def human_size(s):
     for u in UNITS:
         s = s / 1024
         if s < 1024:
-            return "{0:.0f}{1}".format(s, u)
+            return "{0:.0f}{1}".format(s, u) + "B"
+
 
 # Gather some defs into one
 
@@ -87,17 +100,34 @@ def datetime():
 #     time = timehere.strftime("%a %b %d %Y, \033[3;37m\033[38;2;0;119;169m%H:%M:%S")
 #     return timezone
 
-# Make a process runner
-# def runner():
-#    with os.system("lspci") as f:
-#        find = int(f.readline().split)
-#        return find
+
+# def cpu_name():
+#     c = cpuinfo.get_cpu_info()["brand"].split(" ")
+#     n = c[2], c[4], c[5]
+#     e = str(" ".join(n))
+#     return e
+
+
+# def scan_lines_equal_to(string, fp):
+#     for line in fp:
+#     if line == string:
+#     yield line
+#
+#
+# def cpu_name():
+#     with open("/proc/cpuinfo", "r") as fp:
+#     for line in scan_lines_equal_to("model name", fp):
+#     return line
 
 
 def cpu_name():
-    #    with open ("/proc/cpuinfo", "r") as f:
-    #        find = int(f.readline().split)
-    return "Not implemented"
+    lscpu = subprocess.check_output("lscpu", shell=True).strip().decode()
+    for line in lscpu.split("\n"):
+        if "Model name" in line:
+            m = re.sub(".*model name.*:", "", line, 1).split()
+            e = m[4], m[6], m[7]
+            o = str(" ".join(e))
+            return o
 
 
 def kernel():
@@ -106,9 +136,12 @@ def kernel():
 
 
 def get_packages():
-    return "Not implemented"
+    p = os.popen("pacman -Q | wc -l").read().rstrip("\n")
+    return p
 
 
+# Other "popular" ways return terminfo. This is better.
+# Gotta look at the os.env-code...
 def terminal():
     t = os.environ.get("TERMINAL")
     return t
@@ -121,6 +154,7 @@ def shell():
 
 # Maybe rewrite this to use uname.uptime or some other way of getting y,m,w,d,h,m
 # /proc/uptime returns seconds. if u want sec add "%02d" and (sec) to return
+# This makes cython convert/compile fail, smt about float. fix later.
 def uptime():
     with open("/proc/uptime", "r") as f:
         sec = float(f.readline().split()[0])
@@ -157,8 +191,17 @@ def ram():
 
 
 def gpu_name():
-    return "Not Implemented"
-
+    gpu = ""
+    lspci = subprocess.check_output("lspci", shell=True).strip().decode()
+    for line in lspci.split("\n"):
+        if "VGA" in line:
+            vga = re.sub(".*.VGA.*.*: ", "", line, 1)
+            if "NVIDIA" in vga:
+               g = re.sub("NVIDIA\sCorporation\s\w[a-zA-Z]\d*\s\W", "", vga, 1)
+               gpu = re.sub("(])\W\W(rev a\d\W)", "", g, 1)
+            if "AMD" in vga:
+                gpu = "go green"
+    return gpu
 
 # make mount points reader or smt. Or be lazy and just make config for points.
 def diskspace_root():
@@ -206,6 +249,7 @@ def cpu_temp():
 
 
 def cpu_fan():
+    t = psutil.sensors_temperatures()
     return "Not implemented"
 
 
@@ -215,26 +259,26 @@ OUT = """
 \033[3m{datetime}\033[0m
 \033[3m\033[38;2;0;119;169mKernel:\033[0m   {kernel}
 \033[3m\033[38;2;0;119;169mUptime:\033[0m   {uptime}
+\033[3m\033[38;2;0;119;169mPackages:\033[0m {get_packages}
 \033[3m\033[38;2;0;119;169mTerminal:\033[0m {terminal}
 \033[3m\033[38;2;0;119;169mShell:\033[0m    {shell}
+\033[3m\033[38;2;0;119;169mCPU:\033[0m      {cpu_name}
 \033[3m\033[38;2;0;119;169mCPU Load:\033[0m {cpu_use}{loadavg}
+\033[3m\033[38;2;0;119;169mGPU:\033[0m      {gpu_name}
 \033[3m\033[38;2;0;119;169mRam:\033[0m      {ram}
 \033[3m\033[38;2;0;119;169mDiskspace:\033[0m
 \033[3m\033[38;2;0;119;169mRoot:\033[0m     {diskspace_root}
 \033[3m\033[38;2;0;119;169mHome:\033[0m     {diskspace_home}
 \033[3m\033[38;2;0;119;169mSSD:\033[0m      {diskspace_custom1}
 \033[3m\033[38;2;0;119;169mHDD:\033[0m      {diskspace_custom2}
-
-
-
-
-"""
-
-"""
-\033[3m\033[38;2;0;119;169mCPU:\033[0m      {cpu_name}
 \033[3m\033[38;2;0;119;169mTemp and fans:\033[0m
 \033[3m\033[38;2;0;119;169mCPU Temp:\033[0m {cpu_temp}
 \033[3m\033[38;2;0;119;169mCPU Fan:\033[0m  {cpu_fan}
+
+
+"""
+
+"""
 """
 
 LOGO = """
@@ -255,6 +299,8 @@ LOGO = """
 \033[3m\033[38;2;0;119;169m  ;####                 ####;  \033[0m
 \033[3m\033[38;2;0;119;169m  ##'                     '##  \033[0m
 \033[3m\033[38;2;0;119;169m #'                         `# \033[0m
+                               
+                               
 """
 
 TEXT = OUT.format(
@@ -262,11 +308,13 @@ TEXT = OUT.format(
     hostname=host_name(),
     kernel=kernel(),
     uptime=uptime(),
+    get_packages=get_packages(),
     terminal=terminal(),
     shell=shell(),
     cpu_name=cpu_name(),
     cpu_use=cpu_use(),
     loadavg=loadavg(),
+    gpu_name=gpu_name(),
     ram=ram(),
     diskspace_root=diskspace_root(),
     diskspace_home=diskspace_home(),

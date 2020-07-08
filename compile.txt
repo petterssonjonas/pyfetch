@@ -1,0 +1,5 @@
+If you want to convert to C and compile:
+cython -3 --embed -o pyfetch.c pyfetch.py
+gcc -O3 -mtune=native -march=native -I/usr/include/python3.8 -o pyfetch pyfetch.c -lpython3.8 -lpthread
+
+Might improve execution speed a bit.
