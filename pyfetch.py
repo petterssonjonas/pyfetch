@@ -18,7 +18,22 @@
 # way of getting what we need. I should time the diff...
 # os.uname().nodename truncates hostname to 8 characters on some systems
 # so importing socket to get around that.
-import os, re, subprocess, socket, time, psutil
+import os, re, subprocess, socket, time, psutil, pyfetchconf
+
+"""
+Check out tabulate (pretty print 2d lists as tables)
+and colorama
+tqdm: progress bars
+
+https://towardsdatascience.com/7-cool-python-tricks-that-you-probably-didnt-know-634ae56112be
+
+
+Function to choose outputs, check how many there are and make BLOCKS print the same number for the zip. Or just zip func for ASCII art? Add * ~ | or whatever in front of lines?
+
+
+
+"""
+
 
 # make if needed import thing
 # if configured import pytz
@@ -51,7 +66,6 @@ w = clear  # needed?
 # theme_solarized
 # notheme?
 
-# Man Black code formatting is annoying sometimes. Still best methinks.
 UNITS = [
     q + "k",
     q + "M",
@@ -190,6 +204,7 @@ def ram():
     )
 
 
+# pci registry
 def gpu_name():
     gpu = ""
     lspci = subprocess.check_output("lspci", shell=True).strip().decode()
@@ -197,11 +212,12 @@ def gpu_name():
         if "VGA" in line:
             vga = re.sub(".*.VGA.*.*: ", "", line, 1)
             if "NVIDIA" in vga:
-               g = re.sub("NVIDIA\sCorporation\s\w[a-zA-Z]\d*\s\W", "", vga, 1)
-               gpu = re.sub("(])\W\W(rev a\d\W)", "", g, 1)
+                g = re.sub("NVIDIA\sCorporation\s\w[a-zA-Z]\d*\s\W", "", vga, 1)
+                gpu = re.sub("(])\W\W(rev a\d\W)", "", g, 1)
             if "AMD" in vga:
                 gpu = "go green"
     return gpu
+
 
 # make mount points reader or smt. Or be lazy and just make config for points.
 def diskspace_root():
@@ -255,53 +271,37 @@ def cpu_fan():
 
 # Out and text needs to be the same line count. make smt for this?
 OUT = """
-\033[3;37m{hostname}\033[0m
-\033[3m{datetime}\033[0m
-\033[3m\033[38;2;0;119;169mKernel:\033[0m   {kernel}
-\033[3m\033[38;2;0;119;169mUptime:\033[0m   {uptime}
-\033[3m\033[38;2;0;119;169mPackages:\033[0m {get_packages}
-\033[3m\033[38;2;0;119;169mTerminal:\033[0m {terminal}
-\033[3m\033[38;2;0;119;169mShell:\033[0m    {shell}
-\033[3m\033[38;2;0;119;169mCPU:\033[0m      {cpu_name}
-\033[3m\033[38;2;0;119;169mCPU Load:\033[0m {cpu_use}{loadavg}
-\033[3m\033[38;2;0;119;169mGPU:\033[0m      {gpu_name}
-\033[3m\033[38;2;0;119;169mRam:\033[0m      {ram}
-\033[3m\033[38;2;0;119;169mDiskspace:\033[0m
-\033[3m\033[38;2;0;119;169mRoot:\033[0m     {diskspace_root}
-\033[3m\033[38;2;0;119;169mHome:\033[0m     {diskspace_home}
+\033[3;37m{hostname}                                           
+\033[3m{datetime}                                              
+\033[3m\033[38;2;0;119;169mKernel:\033[0m   {kernel}           
+\033[3m\033[38;2;0;119;169mUptime:\033[0m   {uptime}           
+\033[3m\033[38;2;0;119;169mPackages:\033[0m {get_packages}     
+\033[3m\033[38;2;0;119;169mTerminal:\033[0m {terminal}         
+\033[3m\033[38;2;0;119;169mShell:\033[0m    {shell}            
+\033[3m\033[38;2;0;119;169mCPU:\033[0m      {cpu_name}         
+\033[3m\033[38;2;0;119;169mCPU Load:\033[0m {cpu_use}{loadavg} 
+\033[3m\033[38;2;0;119;169mGPU:\033[0m      {gpu_name}         
+\033[3m\033[38;2;0;119;169mRam:\033[0m      {ram}              
+\033[3m\033[38;2;0;119;169mDiskspace:\033[0m                   
+\033[3m\033[38;2;0;119;169mRoot:\033[0m     {diskspace_root}   
+\033[3m\033[38;2;0;119;169mHome:\033[0m     {diskspace_home}   
 \033[3m\033[38;2;0;119;169mSSD:\033[0m      {diskspace_custom1}
 \033[3m\033[38;2;0;119;169mHDD:\033[0m      {diskspace_custom2}
-\033[3m\033[38;2;0;119;169mTemp and fans:\033[0m
-\033[3m\033[38;2;0;119;169mCPU Temp:\033[0m {cpu_temp}
-\033[3m\033[38;2;0;119;169mCPU Fan:\033[0m  {cpu_fan}
+\033[3m\033[38;2;0;119;169mCPU Temp:\033[0m {cpu_temp}         
+\033[3m\033[38;2;0;119;169mCPU Fan:\033[0m  {cpu_fan}          
 
 
 """
 
-"""
-"""
+# OUT.count("\n")) # Counts newlines in OUT
 
-LOGO = """
-\033[3m\033[38;2;0;119;169m               #               \033[0m
-\033[3m\033[38;2;0;119;169m              ###              \033[0m
-\033[3m\033[38;2;0;119;169m             #####             \033[0m
-\033[3m\033[38;2;0;119;169m             ######            \033[0m
-\033[3m\033[38;2;0;119;169m            ; #####;           \033[0m
-\033[3m\033[38;2;0;119;169m           +##.#####           \033[0m
-\033[3m\033[38;2;0;119;169m          +##########          \033[0m
-\033[3m\033[38;2;0;119;169m         #############;        \033[0m
-\033[3m\033[38;2;0;119;169m        ###############+       \033[0m
-\033[3m\033[38;2;0;119;169m       #######   #######       \033[0m
-\033[3m\033[38;2;0;119;169m     .######;     ;###;`'.     \033[0m
-\033[3m\033[38;2;0;119;169m    .#######;     ;#####.      \033[0m
-\033[3m\033[38;2;0;119;169m    #########.   .########`    \033[0m
-\033[3m\033[38;2;0;119;169m   ######'           '######   \033[0m
-\033[3m\033[38;2;0;119;169m  ;####                 ####;  \033[0m
-\033[3m\033[38;2;0;119;169m  ##'                     '##  \033[0m
-\033[3m\033[38;2;0;119;169m #'                         `# \033[0m
-                               
-                               
-"""
+ART = pyfetchconf.LOGO
+
+def add_glam():
+    for line in OUT.count("\n"):
+        print("*")
+    return line
+
 
 TEXT = OUT.format(
     datetime=datetime(),
@@ -325,9 +325,18 @@ TEXT = OUT.format(
 )
 
 # Is this the best way of doing this?
-BLOCKS = [LOGO, TEXT]
-block_split = [b.split("\n") for b in BLOCKS]
-zipped = zip(*block_split)
 
-for elems in zipped:
-    print("".join(elems))
+def zip_art_text():
+    BLOCKS = [ART, TEXT]
+    block_split = [b.split("\n") for b in BLOCKS]
+    zipped = zip(*block_split)
+    for elements in zipped:
+        print("".join(elements))
+
+
+if pyfetchconf.LOGO == 0:
+    print(TEXT)
+else:
+    zip_art_text()
+
+

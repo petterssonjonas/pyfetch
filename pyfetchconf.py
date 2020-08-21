@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #              _____    _       _                            __ _       
 #  _ __  _   _|  ___|__| |_ ___| |__         ___ ___  _ __  / _(_) __ _ 
 # | '_ \| | | | |_ / _ \ __/ __| '_ \ _____ / __/ _ \| '_ \| |_| |/ _` |
@@ -16,7 +17,6 @@ q = cursive + color_arch
 w = clear
 
 # Define logos
-
 
 ARCH = """
 \033[3m\033[38;2;0;119;169m               #               \033[0m
@@ -38,16 +38,9 @@ ARCH = """
 \033[3m\033[38;2;0;119;169m #'                         `# \033[0m
 """
 
-LOGO = ARCH
+# 0 for no logo
+
+LOGO = 0
 
 
-# Define lists
-
-UNITS = [
-    q + "kB",
-    q + "MB",
-    q + "GB",
-    q + "TB",
-    q + "PB",
-]
 
